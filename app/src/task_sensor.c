@@ -62,13 +62,28 @@
 /********************** internal data declaration ****************************/
 const task_sensor_cfg_t task_sensor_cfg_list[] = {
 	{ID_BTN_A,  BTN_A_PORT,  BTN_A_PIN,  BTN_A_PRESSED, DEL_BTN_XX_MAX,
+	 EV_SYS_XX_IDLE,  EV_SYS_XX_ACTIVE},
+	 {ID_BTN_B,  BTN_B_PORT,  BTN_B_PIN,  BTN_B_PRESSED, DEL_BTN_XX_MAX,
+	 EV_SYS_XX_IDLE,  EV_SYS_XX_ACTIVE},
+	 {ID_BTN_C,  BTN_C_PORT,  BTN_C_PIN,  BTN_C_PRESSED, DEL_BTN_XX_MAX,
+	 EV_SYS_XX_IDLE,  EV_SYS_XX_ACTIVE},
+	 {ID_BTN_D,  BTN_D_PORT,  BTN_D_PIN,  BTN_D_PRESSED, DEL_BTN_XX_MAX,
+	 EV_SYS_XX_IDLE,  EV_SYS_XX_ACTIVE},
+	 {ID_SW_A,  SW_A_PORT,  SW_A_PIN,  SW_A_PRESSED, DEL_BTN_XX_MAX,
+	 EV_SYS_XX_IDLE,  EV_SYS_XX_ACTIVE},
+	 {ID_SW_B,  SW_B_PORT,  SW_B_PIN,  SW_B_PRESSED, DEL_BTN_XX_MAX,
 	 EV_SYS_XX_IDLE,  EV_SYS_XX_ACTIVE}
 };
 
 #define SENSOR_CFG_QTY	(sizeof(task_sensor_cfg_list)/sizeof(task_sensor_cfg_t))
 
 task_sensor_dta_t task_sensor_dta_list[] = {
-	{DEL_BTN_XX_MIN, ST_BTN_XX_UP, EV_BTN_XX_UP}
+	{DEL_BTN_XX_MIN, ST_BTN_XX_UP, EV_BTN_XX_UP}, // Botón azul.
+	{DEL_BTN_XX_MIN, ST_BTN_XX_UP, EV_BTN_XX_UP}, // BTN_B.
+	{DEL_BTN_XX_MIN, ST_BTN_XX_UP, EV_BTN_XX_UP}, // BTN_C.
+	{DEL_BTN_XX_MIN, ST_BTN_XX_UP, EV_BTN_XX_UP}, // BTN_D.
+	{DEL_BTN_XX_MIN, ST_BTN_XX_UP, EV_BTN_XX_UP}, // SW_A.
+	{DEL_BTN_XX_MIN, ST_BTN_XX_UP, EV_BTN_XX_UP}  // SW_B.
 };
 
 #define SENSOR_DTA_QTY	(sizeof(task_sensor_dta_list)/sizeof(task_sensor_dta_t))
@@ -172,13 +187,32 @@ void task_sensor_update(void *parameters)
 
 					if (EV_BTN_XX_DOWN == p_task_sensor_dta->event)
 					{
-						put_event_task_system(p_task_sensor_cfg->signal_down);
-						p_task_sensor_dta->state = ST_BTN_XX_DOWN;
+						p_task_sensor_dta->state = ST_BTN_XX_FALLING;
+						p_task_sensor_dta->tick = p_task_sensor_cfg->tick_max;
 					}
 
 					break;
 
 				case ST_BTN_XX_FALLING:
+
+					if (p_task_sensor_dta->tick > 0) {
+						p_task_sensor_dta->tick--;
+						p_task_sensor_dta->state = ST_BTN_XX_FALLING;
+					} else
+
+					if (p_task_sensor_dta->tick == 0) {
+
+						if (EV_BTN_XX_DOWN == p_task_sensor_dta->event) {
+							p_task_sensor_dta->state = ST_BTN_XX_DOWN;
+							put_event_task_system(p_task_sensor_cfg->signal_down);
+							// put_event_task_system();
+						} else
+
+						if (EV_BTN_XX_UP == p_task_sensor_dta->event) {
+							p_task_sensor_dta->state = ST_BTN_XX_UP;
+						}
+
+					}
 
 					break;
 
@@ -186,13 +220,33 @@ void task_sensor_update(void *parameters)
 
 					if (EV_BTN_XX_UP == p_task_sensor_dta->event)
 					{
-						put_event_task_system(p_task_sensor_cfg->signal_up);
-						p_task_sensor_dta->state = ST_BTN_XX_UP;
+						p_task_sensor_dta->state = ST_BTN_XX_RISING;
+						p_task_sensor_dta->tick = p_task_sensor_cfg->tick_max;
 					}
 
 					break;
 
 				case ST_BTN_XX_RISING:
+
+					if (p_task_sensor_dta->tick > 0) {
+						p_task_sensor_dta->tick--;
+						p_task_sensor_dta->state = ST_BTN_XX_RISING;
+					} else
+
+					if (p_task_sensor_dta->tick == 0) {
+
+						if (EV_BTN_XX_DOWN == p_task_sensor_dta->event) {
+							p_task_sensor_dta->state = ST_BTN_XX_DOWN;
+						} else
+
+						if (EV_BTN_XX_UP == p_task_sensor_dta->event) {
+							p_task_sensor_dta->state = ST_BTN_XX_UP;
+							put_event_task_system(p_task_sensor_cfg->signal_up);
+							// put_event_task_system
+						}
+
+					}
+
 
 					break;
 
